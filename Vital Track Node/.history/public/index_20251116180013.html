@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Vital Track</title>
+    <!-- Google Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+    <!-- CSS -->
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header>
+        <h1>Vital Track</h1>
+    </header>
+
+    <main>
+        <!-- Sensor Output -->
+        <section class="box sensor-box">
+            <h2>Sensor Output</h2>
+            <div class="sensor-display">
+                <span id="sensor-value">--</span> mm Hg
+            </div>
+            <div class="sensor-status">
+                Status: <span id="sensor-status" class="disconnected">Disconnected</span>
+            </div>
+            <div class="buttons">
+                <button id="zero-btn">Zero Sensor</button>
+                <button id="calibrate-btn">Calibrate</button>
+            </div>
+        </section>
+
+        <!-- Blood Pressure -->
+        <section class="box bp-box">
+            <h2>Blood Pressure</h2>
+            <div class="bp-display">
+                <div class="bp-value">
+                    <div class="bp-label">Systolic</div>
+                    <div class="bp-number" id="systolic-display">120</div>
+                </div>
+                <div class="bp-value">
+                    <div class="bp-label">Diastolic</div>
+                    <div class="bp-number" id="diastolic-display">80</div>
+                </div>
+            </div>
+            <div class="bp-sliders">
+                <div class="bp-input-group">
+                    <input type="range" id="systolic-slider" min="0" max="200" value="120">
+                    <input type="number" id="systolic-input" min="0" max="200" value="120">
+                </div>
+                <div class="bp-input-group">
+                    <input type="range" id="diastolic-slider" min="0" max="200" value="80">
+                    <input type="number" id="diastolic-input" min="0" max="200" value="80">
+                </div>
+            </div>
+        </section>
+
+        <!-- Heart Rate -->
+        <section class="box hr-box">
+            <h2>Heart Rate</h2>
+            <div class="hr-display">
+                <div class="hr-value">
+                    <div class="hr-label">Heart Rate</div>
+                    <div class="hr-number" id="hr-display">70</div>
+                </div>
+            </div>
+            <div class="hr-input-group bp-input-group">
+                <input type="range" id="heart-rate-slider" min="0" max="200" value="70">
+                <input type="number" id="heart-rate-input" min="0" max="200" value="70">
+            </div>
+        </section>
+    </main>
+
+    <!-- Socket.IO client served by the server -->
+    <script src="/socket.io/socket.io.js"></script>
+    <!-- Main JS -->
+    <script src="main.js"></script>
+</body>
+</html>

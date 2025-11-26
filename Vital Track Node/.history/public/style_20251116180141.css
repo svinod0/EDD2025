@@ -1,0 +1,225 @@
+/* Base Reset */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: 'Poppins', sans-serif;
+}
+
+body {
+    background: #e6f0fa;
+    color: #333;
+    min-height: 100vh;
+}
+
+/* Header */
+header {
+    background: #4a90e2;
+    color: white;
+    padding: 30px 20px;
+    text-align: center;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+header h1 {
+    font-size: 2.5rem;
+    font-weight: 700;
+}
+
+/* Main container */
+main {
+    max-width: 1000px;
+    margin: 40px auto;
+    display: flex;
+    flex-direction: column;
+    gap: 35px;
+    align-items: center;
+}
+
+/* Box Styling */
+.box {
+    background-color: #fff;
+    border-radius: 25px;
+    padding: 40px 35px;
+    width: 90%;
+    max-width: 600px;
+    text-align: center;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.box:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 15px 30px rgba(0,0,0,0.15);
+}
+
+.box h2 {
+    font-size: 1.8rem;
+    color: #4a90e2;
+    margin-bottom: 25px;
+}
+
+/* Sensor Box */
+.sensor-display {
+    font-size: 3rem;
+    font-weight: 700;
+    margin-bottom: 20px;
+    color: #1c1c1c;
+}
+
+.sensor-status {
+    margin-bottom: 20px;
+    font-size: 1.2rem;
+    font-weight: 600;
+}
+
+.sensor-status .connected { color: #28a745; }
+.sensor-status .disconnected { color: #dc3545; }
+
+.buttons {
+    margin-bottom: 20px;
+}
+
+.buttons button {
+    padding: 12px 25px;
+    margin: 0 10px;
+    border: none;
+    border-radius: 50px;
+    background-color: #4a90e2;
+    color: white;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.buttons button:hover { background-color: #357ab8; }
+
+/* Blood Pressure Displays */
+.bp-display {
+    display: flex;
+    justify-content: center;
+    gap: 40px;
+    margin-bottom: 25px;
+}
+
+.bp-value {
+    background-color: #f0f4f8;
+    border-radius: 20px;
+    padding: 25px 35px;
+    min-width: 120px;
+    text-align: center;
+    box-shadow: 0 6px 15px rgba(0,0,0,0.08);
+}
+
+.bp-value .bp-label {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-bottom: 10px;
+    color: #4a90e2;
+}
+
+.bp-value .bp-number {
+    font-size: 2.2rem;
+    font-weight: 700;
+    color: #1c1c1c;
+}
+
+/* Heart Rate Display - same as BP cards */
+.hr-display {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 25px;
+}
+
+.hr-value {
+    background-color: #f0f4f8;
+    border-radius: 20px;
+    padding: 25px 35px;
+    min-width: 120px;
+    text-align: center;
+    box-shadow: 0 6px 15px rgba(0,0,0,0.08);
+}
+
+.hr-label {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-bottom: 10px;
+    color: #4a90e2;
+}
+
+.hr-number {
+    font-size: 2.2rem;
+    font-weight: 700;
+    color: #1c1c1c;
+}
+
+/* Sliders */
+.bp-sliders, .hr-box .hr-input-group {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 25px;
+    align-items: center;
+}
+
+/* Individual slider group */
+.bp-input-group {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    align-items: center;
+}
+
+/* Center Heart Rate input group */
+.hr-box .hr-input-group {
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    align-items: center;
+}
+
+/* Inputs */
+.bp-input-group input[type="number"] {
+    width: 80px;
+    padding: 8px 10px;
+    border-radius: 12px;
+    border: 1px solid #ccc;
+    font-size: 1rem;
+    text-align: center;
+}
+
+/* Sliders Modernization */
+input[type="range"] {
+    -webkit-appearance: none;
+    width: 220px;
+    height: 12px;
+    border-radius: 6px;
+    background: #d0e2fc;
+    outline: none;
+    margin-bottom: 10px;
+    accent-color: #4a90e2;
+}
+
+/* Chrome/Safari slider thumb */
+input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: #4a90e2;
+    cursor: pointer;
+    border: none;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+}
+
+/* Firefox slider thumb */
+input[type="range"]::-moz-range-thumb {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: #4a90e2;
+    cursor: pointer;
+    border: none;
+}
