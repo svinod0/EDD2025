@@ -4,18 +4,16 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <title>Vital Track</title>
-    <!-- Google Font -->
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
-    <!-- CSS -->
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <header>
         <h1>Vital Track</h1>
+        <button id="connect-serial-btn" class="connect-btn">🔌 Connect to Mannequin</button>
     </header>
 
     <main>
-        <!-- Sensor Output -->
         <section class="box sensor-box">
             <h2>Sensor Output</h2>
             <div class="sensor-display">
@@ -30,7 +28,6 @@
             </div>
         </section>
 
-        <!-- Blood Pressure -->
         <section class="box bp-box">
             <h2>Blood Pressure</h2>
             <div class="bp-display">
@@ -55,7 +52,6 @@
             </div>
         </section>
 
-        <!-- Heart Rate -->
         <section class="box hr-box">
             <h2>Heart Rate</h2>
             <div class="hr-display">
@@ -71,9 +67,6 @@
         </section>
     </main>
 
-    <!-- Socket.IO client served by the server -->
-    <script src="/socket.io/socket.io.js"></script>
-    <!-- Main JS -->
     <script src="main.js"></script>
 </body>
 </html>
