@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Vital Track</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
@@ -10,14 +10,18 @@
 <body>
     <header>
         <h1>Vital Track</h1>
-        <button id="connect-serial-btn" class="connect-btn">🔌 Connect to Mannequin</button>
     </header>
 
     <main>
+        <!-- Sensor Output -->
         <section class="box sensor-box">
             <h2>Sensor Output</h2>
             <div class="sensor-display">
                 <span id="sensor-value">--</span> mm Hg
+            </div>
+            <div class="gauge-container">
+                <canvas id="sensor-gauge" width="250" height="250"></canvas>
+                <div id="gauge-needle"></div>
             </div>
             <div class="sensor-status">
                 Status: <span id="sensor-status" class="disconnected">Disconnected</span>
@@ -28,6 +32,7 @@
             </div>
         </section>
 
+        <!-- Blood Pressure -->
         <section class="box bp-box">
             <h2>Blood Pressure</h2>
             <div class="bp-display">
@@ -52,6 +57,7 @@
             </div>
         </section>
 
+        <!-- Heart Rate -->
         <section class="box hr-box">
             <h2>Heart Rate</h2>
             <div class="hr-display">

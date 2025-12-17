@@ -1,9 +1,12 @@
-// ===============================
+const { ipcRenderer } = require('electron');
+
+// =======================
 // DOM ELEMENTS
-// ===============================
+// =======================
 const sensorStatusEl = document.getElementById('sensor-status');
 const sensorValueEl = document.getElementById('sensor-value');
-const connectBtn = document.getElementById('connect-serial-btn');
+const gaugeCanvas = document.getElementById('sensor-gauge');
+const ctx = gaugeCanvas.getContext('2d');
 
 const systolicSlider = document.getElementById('systolic-slider');
 const diastolicSlider = document.getElementById('diastolic-slider');
@@ -17,152 +20,204 @@ const systolicDisplay = document.getElementById('systolic-display');
 const diastolicDisplay = document.getElementById('diastolic-display');
 const hrDisplay = document.getElementById('hr-display');
 
-// Global Variables for Serial
-let port;
-let writer;
-let keepReading = false;
-
-// App State
-let zeroValue = 0;
-let calibrateValue = -1; // -1 means not set
+// =======================
+// STATE
+// =======================
 let lastUpdate = Date.now();
+let latestValue = null;
+let pendingUpdate = false;
 
-// ===============================
-// WEB SERIAL CONNECTION
-// ===============================
-connectBtn.addEventListener('click', async () => {
-    if ("serial" in navigator) {
-        try {
-            // 1. Request the port (User picks from list)
-            port = await navigator.serial.requestPort();
-            
-            // 2. Open the port (Match Arduino Baud Rate 9600)
-            await port.open({ baudRate: 9600 });
-            
-            // 3. Update UI
-            sensorStatusEl.textContent = "Connected";
-            sensorStatusEl.classList.remove("disconnected");
-            sensorStatusEl.classList.add("connected");
-            connectBtn.disabled = true;
-            connectBtn.textContent = "✅ Device Linked";
+let zeroValue = -1;
+let calibrateValue = -1;
 
-            // 4. Set up the writer (to send data TO Arduino)
-            const textEncoder = new TextEncoderStream();
-            const writableStreamClosed = textEncoder.readable.pipeTo(port.writable);
-            writer = textEncoder.writable.getWriter();
+let displayedValue = 0;
 
-            // 5. Start the read loop (to get data FROM Arduino)
-            readLoop();
+// =======================
+// GAUGE SETTINGS
+// =======================
+const gauge = {
+    min: 0,
+    max: 300,
+    radius: 100,
+    centerX: gaugeCanvas.width / 2,
+    centerY: gaugeCanvas.height / 2
+};
 
-        } catch (err) {
-            console.error("Serial connection error:", err);
-            alert("Could not connect. Make sure the Arduino is plugged in and no other apps (like Arduino IDE) are using it.");
-        }
-    } else {
-        alert("Your browser doesn't support Web Serial. Please use Chrome, Edge, or Opera.");
-    }
-});
+// =======================
+// OFFSCREEN STATIC CANVAS
+// =======================
+const staticCanvas = document.createElement('canvas');
+staticCanvas.width = gaugeCanvas.width;
+staticCanvas.height = gaugeCanvas.height;
+const staticCtx = staticCanvas.getContext('2d');
 
-// ===============================
-// READ LOOP (FROM ARDUINO)
-// ===============================
-async function readLoop() {
-    const textDecoder = new TextDecoderStream();
-    const readableStreamClosed = port.readable.pipeTo(textDecoder.writable);
-    const reader = textDecoder.readable.getReader();
-    keepReading = true;
-    let buffer = "";
-
-    try {
-        while (keepReading) {
-            const { value, done } = await reader.read();
-            if (done) break;
-            
-            if (value) {
-                buffer += value;
-                // Process full lines
-                const lines = buffer.split('\n');
-                // Keep the incomplete last line in the buffer
-                buffer = lines.pop(); 
-
-                for (const line of lines) {
-                    handleSerialData(line.trim());
-                }
-            }
-        }
-    } catch (error) {
-        console.error("Read error:", error);
-    } finally {
-        reader.releaseLock();
-    }
-}
-
-function handleSerialData(data) {
-    // Arduino sends a single float number (pressure)
-    const pressure = parseFloat(data);
-    if (!isNaN(pressure)) {
-        sensorValueEl.textContent = pressure.toFixed(2);
+// =======================
+// IPC LISTENER
+// =======================
+ipcRenderer.on('sensor_update', (event, value) => {
+    const raw = parseFloat(value);
+    if (!isNaN(raw)) {
+        latestValue = raw;
         lastUpdate = Date.now();
+        pendingUpdate = true;
+    }
+});
+
+// =======================
+// STATIC GAUGE DRAW (ONCE)
+// =======================
+function drawStaticGauge() {
+    const { centerX, centerY, radius } = gauge;
+    const min = 0;
+    const max = 300;
+    const startAngle = Math.PI / 2 + 0.05;
+    const totalAngle = 2 * Math.PI;
+
+    staticCtx.clearRect(0, 0, staticCanvas.width, staticCanvas.height);
+
+    // Outer circle
+    staticCtx.beginPath();
+    staticCtx.lineWidth = 10;
+    staticCtx.strokeStyle = '#ddd';
+    staticCtx.arc(centerX, centerY, radius, 0, totalAngle);
+    staticCtx.stroke();
+
+    // Ticks + numbers
+    for (let i = min; i <= max; i += 2) {
+        const angle = startAngle + (i / max) * totalAngle;
+        const tickLength = (i % 10 === 0) ? 15 : 8;
+
+        staticCtx.beginPath();
+        staticCtx.moveTo(
+            centerX + (radius - tickLength) * Math.cos(angle),
+            centerY + (radius - tickLength) * Math.sin(angle)
+        );
+        staticCtx.lineTo(
+            centerX + radius * Math.cos(angle),
+            centerY + radius * Math.sin(angle)
+        );
+        staticCtx.lineWidth = (i % 10 === 0) ? 2 : 1;
+        staticCtx.strokeStyle = '#000';
+        staticCtx.stroke();
+
+        if (i % 20 === 0) {
+            staticCtx.font = '14px Poppins';
+            staticCtx.textAlign = 'center';
+            staticCtx.textBaseline = 'middle';
+            staticCtx.fillText(
+                i.toString(),
+                centerX + (radius - 30) * Math.cos(angle),
+                centerY + (radius - 30) * Math.sin(angle)
+            );
+        }
     }
 }
 
-// Check for disconnection (timeout)
-setInterval(() => {
-    if (Date.now() - lastUpdate > 3000 && sensorStatusEl.textContent === "Connected") {
-        // Note: With Web Serial, disconnection usually throws an error in readLoop,
-        // but this visual safety net helps.
-        sensorValueEl.textContent = "--";
-    }
-}, 1000);
+// =======================
+// NEEDLE DRAW ONLY
+// =======================
+function drawNeedle(value) {
+    ctx.clearRect(0, 0, gaugeCanvas.width, gaugeCanvas.height);
+    ctx.drawImage(staticCanvas, 0, 0);
 
-// ===============================
-// SEND DATA (TO ARDUINO)
-// ===============================
-async function sendValuesToArduino() {
-    if (!writer) return;
+    const startAngle = Math.PI / 2 + 0.05;
+    const angle = startAngle + (value / gauge.max) * (2 * Math.PI);
+    const needleLength = gauge.radius * 0.9;
 
-    const sys = parseInt(systolicSlider.value);
-    const dia = parseInt(diastolicSlider.value);
-    const hr = parseInt(hrSlider.value);
-    const zero = parseFloat(zeroValue).toFixed(2);
-    const calib = parseFloat(calibrateValue).toFixed(2);
+    ctx.beginPath();
+    ctx.lineWidth = 4;
+    ctx.strokeStyle = 'red';
+    ctx.moveTo(gauge.centerX, gauge.centerY);
+    ctx.lineTo(
+        gauge.centerX + needleLength * Math.cos(angle),
+        gauge.centerY + needleLength * Math.sin(angle)
+    );
+    ctx.stroke();
 
-    // Format: "sys,dia,hr,zero,calib\n"
-    const dataString = `${sys},${dia},${hr},${zero},${calib}\n`;
-
-    try {
-        await writer.write(dataString);
-        console.log("Sent:", dataString.trim());
-    } catch (err) {
-        console.error("Write error:", err);
-    }
+    ctx.beginPath();
+    ctx.arc(gauge.centerX, gauge.centerY, 6, 0, Math.PI * 2);
+    ctx.fillStyle = 'black';
+    ctx.fill();
 }
 
-// ===============================
-// UI HANDLERS (Same logic as before)
-// ===============================
+// =======================
+// MAIN UPDATE LOOP (THROTTLED)
+// =======================
+let lastFrame = 0;
 
-// Zero Button
+function updateDOM(timestamp) {
+    if (timestamp - lastFrame > 33) { // ~30 FPS
+        lastFrame = timestamp;
+
+        if (pendingUpdate && latestValue !== null) {
+            sensorValueEl.textContent = latestValue.toFixed(2);
+            sensorStatusEl.textContent = "Connected";
+            sensorStatusEl.classList.add("connected");
+            sensorStatusEl.classList.remove("disconnected");
+
+            displayedValue += (latestValue - displayedValue) * 0.15;
+            drawNeedle(displayedValue);
+
+            pendingUpdate = false;
+        }
+
+        if (Date.now() - lastUpdate > 3000) {
+            sensorStatusEl.textContent = "Disconnected";
+            sensorStatusEl.classList.add("disconnected");
+            sensorStatusEl.classList.remove("connected");
+            sensorValueEl.textContent = "--";
+            drawNeedle(0);
+        }
+    }
+    requestAnimationFrame(updateDOM);
+}
+
+// =======================
+// ZERO / CALIBRATE
+// =======================
 document.getElementById('zero-btn').addEventListener('click', () => {
-    const val = parseFloat(sensorValueEl.textContent);
-    if (!isNaN(val)) {
-        zeroValue = val;
-        alert("Sensor Zeroed at " + zeroValue);
+    if (sensorStatusEl.textContent === "Connected" && latestValue !== null) {
+        zeroValue = latestValue;
         sendValuesToArduino();
+        alert("Zero captured at raw value: " + zeroValue.toFixed(2));
+    } else {
+        alert("Sensor not connected or no data received!");
     }
 });
 
-// Calibrate Button
 document.getElementById('calibrate-btn').addEventListener('click', () => {
-    const val = parseFloat(sensorValueEl.textContent);
-    if (!isNaN(val)) {
-        calibrateValue = val;
-        alert("Calibration value set: " + calibrateValue);
+    if (sensorStatusEl.textContent === "Connected" && latestValue !== null) {
+        if (zeroValue === -1) {
+            alert("Please capture Zero first!");
+            return;
+        }
+        calibrateValue = latestValue;
         sendValuesToArduino();
+        alert(
+            "Calibration captured at raw value: " + calibrateValue.toFixed(2) +
+            "\nCalibration active! Sensor will now display mmHg."
+        );
+    } else {
+        alert("Sensor not connected or no data received!");
     }
 });
 
-// Sync Functions
+// =======================
+// SEND VALUES
+// =======================
+function sendValuesToArduino() {
+    ipcRenderer.send('send-values', {
+        sys: parseInt(systolicSlider.value),
+        dia: parseInt(diastolicSlider.value),
+        hr: parseInt(hrSlider.value),
+        zero: zeroValue,
+        calib: calibrateValue
+    });
+}
+
+// =======================
+// SLIDER SYNC
+// =======================
 function syncSystolic(value) {
     value = parseInt(value);
     if (value <= parseInt(diastolicSlider.value)) value = parseInt(diastolicSlider.value) + 1;
@@ -189,10 +244,19 @@ function syncHR(value) {
     sendValuesToArduino();
 }
 
-// Event Listeners
+// =======================
+// EVENT LISTENERS
+// =======================
 systolicSlider.addEventListener('input', e => syncSystolic(e.target.value));
 systolicInput.addEventListener('input', e => syncSystolic(e.target.value));
 diastolicSlider.addEventListener('input', e => syncDiastolic(e.target.value));
 diastolicInput.addEventListener('input', e => syncDiastolic(e.target.value));
 hrSlider.addEventListener('input', e => syncHR(e.target.value));
 hrInput.addEventListener('input', e => syncHR(e.target.value));
+
+// =======================
+// INIT
+// =======================
+drawStaticGauge();
+sendValuesToArduino();
+requestAnimationFrame(updateDOM);
