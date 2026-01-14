@@ -78,11 +78,13 @@ main {
 
 .buttons {
     margin-bottom: 20px;
+    display: flex;
+    justify-content: center;
+    gap: 10px;
 }
 
 .buttons button {
     padding: 12px 25px;
-    margin: 0 10px;
     border: none;
     border-radius: 50px;
     background-color: #4a90e2;
@@ -94,6 +96,15 @@ main {
 }
 
 .buttons button:hover { background-color: #357ab8; }
+
+/* Toggle button spacing + color */
+#toggle-value-btn {
+    background-color: #6c757d;
+}
+
+#toggle-value-btn:hover {
+    background-color: #5a6268;
+}
 
 /* Blood Pressure Displays */
 .bp-display {
@@ -224,27 +235,7 @@ input[type="range"]::-moz-range-thumb {
     border: none;
 }
 
-.connect-btn {
-    background-color: #fff;
-    color: #4a90e2;
-    border: 2px solid white;
-    padding: 10px 20px;
-    border-radius: 50px;
-    font-weight: 700;
-    margin-top: 15px;
-    cursor: pointer;
-    font-size: 1rem;
-    transition: all 0.2s;
+.hidden {
+    display: none !important;
 }
 
-.connect-btn:hover {
-    background-color: #e6f0fa;
-    color: #337ab7;
-}
-
-.connect-btn:disabled {
-    background-color: #8bbceb; /* Lighter blue */
-    color: #fff;
-    cursor: default;
-    border-color: #8bbceb;
-}
