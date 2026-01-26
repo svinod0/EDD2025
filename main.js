@@ -280,4 +280,3 @@ hrInput.addEventListener('input', e => syncHR(e.target.value));
 drawStaticGauge();
 sendValuesToArduino();
 requestAnimationFrame(updateDOM);
-
